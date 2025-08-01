@@ -14,7 +14,6 @@ def parse_pdf(file_path: str, board: str, grade: str, subject: str):
     loader = PyPDFLoader(file_path)
     documents = loader.load_and_split(text_splitter)
     
-    # Add metadata to each document chunk
     for doc in documents:
         doc.metadata.update({'board': board, 'grade': grade, 'subject': subject})
     
@@ -24,26 +23,23 @@ def main():
     """Setup PDFs and create FAISS index for the AI Tutor."""
     print("Setting up AI Tutor data...")
     
-    # Check API key
     if not os.environ.get("EURIAI_API_KEY"):
         print("❌ EURIAI_API_KEY not found in .env file")
         return
 
-    # Check for PDFs
+    embedding_function = EuriaiEmbeddings(model="gemini-embedding-001")
+
     syllabus_dir = "data/syllabi"
     os.makedirs(syllabus_dir, exist_ok=True)
     
     pdf_files = glob.glob(os.path.join(syllabus_dir, "*.pdf"))
     if not pdf_files:
         print(f"📁 No PDFs found in {syllabus_dir}/")
-        print("   Add your PDFs (format: Board_Grade_Subject.pdf) and run again")
         return
 
     print(f"📚 Processing {len(pdf_files)} PDF files...")
 
-    # Parse PDFs
     all_documents = []
-    
     for pdf_path in pdf_files:
         file_name = os.path.basename(pdf_path)
         parts = file_name.replace('.pdf', '').split('_')
@@ -65,20 +61,18 @@ def main():
         print("❌ No documents parsed successfully")
         return
 
-    # Create FAISS index
     try:
         print("🧠 Creating AI index...")
-        embedding_function = EuriaiEmbeddings()
         faiss_index = FAISS.from_documents(all_documents, embedding_function)
 
         index_path = "data/vector_store/faiss_index"
-        os.makedirs("data/vector_store", exist_ok=True)
+        os.makedirs(os.path.dirname(index_path), exist_ok=True)
         faiss_index.save_local(index_path)
         
         print("✅ Setup complete! You can now run the app.")
     except Exception as e:
         print(f"❌ Setup failed: {e}")
-        print("   Check your API key and internet connection")
+        print("   Check your API key and internet connection.")
 
 if __name__ == "__main__":
     main()

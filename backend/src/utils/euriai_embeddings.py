@@ -6,7 +6,7 @@ from langchain_core.embeddings import Embeddings
 class EuriaiEmbeddings(Embeddings):
     """Euriai API embeddings for LangChain."""
     
-    def __init__(self, model: str = "text-embedding-3-small"):
+    def __init__(self, model: str = "gemini-embedding-001"):
         self.api_key = os.environ.get("EURIAI_API_KEY")
         if not self.api_key:
             raise ValueError("EURIAI_API_KEY not found in .env file")
