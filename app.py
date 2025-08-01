@@ -65,6 +65,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Soft()) as demo:
             gr.Markdown("### Hi! I'm your AI tutor friend! Ask me anything! 😊")
             chatbot = gr.Chatbot(
                 height=400,
+                type="messages",
                 placeholder="👋 Hi there! I'm ready to help you learn!",
                 elem_classes=["chat-bubble"]
             )
