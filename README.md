@@ -99,7 +99,7 @@ python setup.py
 
 **7. Launch the Application**
 ```bash
-python app.py
+python3 app.py
 ```
 Open the local URL provided in your terminal (e.g., `http://127.0.0.1:7860`) in your browser.
 
@@ -108,6 +108,151 @@ Open the local URL provided in your terminal (e.g., `http://127.0.0.1:7860`) in 
 1.  **Indexing (`setup.py`)**: The `EuriaiEmbeddings` model converts the text chunks from your syllabus PDFs into numerical vectors, which are then stored in a local FAISS index.
 2.  **Retrieval**: When a user makes a request (e.g., asks a question), the agent uses `EuriaiEmbeddings` to convert the query into a vector. It then searches the FAISS index to find the most relevant syllabus chunks (the "context").
 3.  **Generation**: The retrieved context is combined with the user's original query into a detailed prompt. This final prompt is sent to the `euriai` `gpt-4.1-nano` model, which generates the final, user-facing answer or roadmap.
+
+---
+
+## 🔧 Technical Deep Dive
+
+### Euriai API Integration Methods
+
+Our project uses the Euriai API for both text generation and embeddings. There are two ways to integrate with Euriai:
+
+#### Method 1: Raw API (Current Implementation)
+```python
+import requests
+
+response = requests.post(
+    "https://api.euron.one/api/v1/euri/chat/completions",
+    headers={"Authorization": f"Bearer {api_key}"},
+    json={
+        "messages": [{"role": "user", "content": prompt}],
+        "model": "gpt-4.1-nano",
+        "temperature": 0.7
+    }
+)
+```
+
+#### Method 2: Euriai Python SDK (Alternative)
+```python
+from euriai import EuriaiClient
+
+client = EuriaiClient(
+    api_key="your_api_key_here",
+    model="gpt-4.1-nano"
+)
+
+response = client.generate_completion(
+    prompt="Write a short poem about artificial intelligence.",
+    temperature=0.7,
+    max_tokens=300
+)
+```
+
+#### Why We Use Raw API
+- ✅ **Educational Value**: Better understanding of HTTP requests and API structure
+- ✅ **Lightweight**: Only requires `requests` library, no additional dependencies
+- ✅ **Full Control**: Complete control over headers, error handling, and request formatting
+- ✅ **Transparency**: Clear visibility into what data is being sent and received
+
+#### When to Consider SDK
+- **Rapid Prototyping**: When you need to build features quickly
+- **Advanced Features**: If Euriai releases SDK-only features
+- **Error Handling**: SDK may provide better built-in error handling
+- **Code Simplicity**: Cleaner, more readable code for complex operations
+
+---
+
+## 🤖 Multi-Agent System Analysis
+
+### Current Architecture: Subject-Based Agents
+
+Our current implementation uses subject-specific agents:
+```python
+agents = {
+    "science_tutor": "Science Education Specialist",
+    "math_tutor": "Mathematics Learning Specialist", 
+    "social_tutor": "Social Studies & History Expert",
+    "english_tutor": "Language Arts & Communication Coach"
+}
+```
+
+### Best Use Cases for CrewAI Multi-Agent Systems
+
+#### 1. 🔥 Complex Problem Solving (Recommended)
+```python
+# Student: "I'm struggling with word problems in math"
+# 
+# Multi-Agent Workflow:
+# 1. Math Agent: Analyzes mathematical concepts
+# 2. English Agent: Identifies reading comprehension issues  
+# 3. Learning Coordinator: Creates integrated solution
+#
+# Result: Addresses both math and language barriers
+```
+
+#### 2. 🎓 Adaptive Learning Assessment
+```python
+# Multi-Agent Workflow:
+# 1. Assessment Agent: Identifies knowledge gaps
+# 2. Pedagogy Agent: Designs teaching approach
+# 3. Practice Agent: Creates exercises
+# 4. Progress Agent: Monitors improvement
+```
+
+#### 3. 🧠 Task-Based Specialization (Alternative Architecture)
+```python
+# Instead of subject-based, use task-based agents:
+study_buddy_crew = {
+    "explainer": "Breaks down complex concepts simply",
+    "practice_generator": "Creates age-appropriate exercises", 
+    "motivator": "Provides encouragement and feedback",
+    "progress_tracker": "Monitors learning and adjusts difficulty"
+}
+```
+
+### UI Complexity Analysis
+
+#### ❌ Features That May Be Too Complex for Kids Under 10:
+- **"Meet Your Tutors" Tab**: Technical details about agents
+- **"Connect Subjects" Tab**: Forced cross-subject integration
+- **Multi-Agent Toggle**: Technical system choices
+
+#### ✅ Features Kids Actually Need:
+- **Simple Chat**: "Ask me anything about Math/Science/English"
+- **Learning Roadmap**: "Here's your weekly plan"
+- **Subject Selection**: Basic dropdowns (Grade, Board, Subject)
+- **Age-Appropriate Responses**: Automatic based on age selection
+
+#### Recommended Simplification:
+```
+Current UI (Complex):
+├── 📅 My Learning Plan
+├── 💬 Ask Questions  
+├── 🌟 Connect Subjects (Remove)
+├── 🤖 Meet Your Tutors (Remove)
+└── 🚀 Advanced Toggle (Make Invisible)
+
+Simplified UI (Kid-Friendly):
+├── 📅 My Learning Plan
+└── 💬 Ask Questions
+```
+
+### Smart Agent Routing (Behind the Scenes)
+```python
+# Invisible to users, but intelligent routing:
+def route_to_appropriate_agent(subject, question_type, age):
+    if subject == "Math" and "word problem" in question:
+        return [math_agent, english_agent, coordinator]  # Multi-agent
+    elif subject == "Science" and age < 8:
+        return science_agent.with_simple_mode()  # Single agent, simple
+    else:
+        return get_subject_expert(subject)  # Standard routing
+```
+
+### Core Insight
+**Multi-agent systems provide value through intelligence, not complexity. The sophistication should be invisible to young users while providing better educational outcomes.**
+
+---
 
 ## 🤝 Contributing
 

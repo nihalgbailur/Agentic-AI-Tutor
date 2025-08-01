@@ -49,7 +49,7 @@ class TutorAgent:
 
         # Find relevant syllabus content with metadata filtering
         query = f"{board} {grade} {subject} syllabus topics"
-        docs = self.retriever.get_relevant_documents(query)
+        docs = self.retriever.invoke(query)
         
         # Filter documents to match exact board, grade, and subject
         matching_docs = []
@@ -104,7 +104,7 @@ Make it friendly and organized with weeks/months. Use markdown formatting.
         if all([grade, board, subject]) and self.retriever:
             try:
                 query = f"{user_message} {board} {grade} {subject}"
-                docs = self.retriever.get_relevant_documents(query)
+                docs = self.retriever.invoke(query)
                 if docs:
                     context = "\n".join([doc.page_content[:200] for doc in docs[:3]])  # Shorter context for kids
             except:
